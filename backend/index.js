@@ -87,20 +87,14 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT || 5000, () => {
-  console.log(`Server running on port ${process.env.PORT || 5000}`);
-});
-
-
-
 
 // Start Server
 if (process.env.NODE_ENV !== "test") {
     const PORT = process.env.PORT
-    app.listen(PORT, HOST, () => console.log(`Server running at http://${HOST}:${PORT}/`));
+    server.listen(PORT, HOST, () => console.log(`Server running at http://${HOST}:${PORT}/`));
   }
 
 
 
 // Exportst the express application
-module.exports = app; 
+module.exports = { app, server }; 

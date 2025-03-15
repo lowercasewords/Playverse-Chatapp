@@ -5,8 +5,9 @@ import request from "supertest"; // Supertest allows us to simulate HTTP request
 import mongoose from "mongoose";
 import expect from "expect";
 
-// const app = require("../index.js");
-const app = require("../index");
+const { server } = require("../index");
+
+// const app = require("../index");
 
 // const { User } = require("../routes/auth.js");
 const User = require("../models/User");
@@ -65,7 +66,7 @@ describe("POST /api/auth/signup", () => {
      * We use supertest to POST to /api/auth/signup on our Express `app`.
      * The `send({...})` method includes the JSON body with email/password.
      */
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/auth/signup")
       .send({ email: "john@example.com", password: "secret123", firstName: "my name", lastName: "last name "});
 
@@ -93,7 +94,7 @@ describe("POST /api/auth/signup", () => {
     await User.create({ email: "jane@example.com", password: "pass", firstName: "Jane someone 21", lastName: "Jane's last12" });
 
     // Now, attempt to sign up again with the same email
-    const res = await request(app)
+    const res = await request(server)
       .post("/api/auth/signup")
       .send({ email: "jane@example.com", password: "newpass", firstName: "Jane someone", lastName: "Jane's last" });
 
@@ -109,37 +110,37 @@ describe("POST /api/auth/signup", () => {
    */
   it("should return 400 if data is missing, or the password boundries do not persist", async () => {
     // Missing password
-    let res1 = await request(app)
+    let res1 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "missingpass@example.com", firstName: "My name", lastName: "my last name" });
     expect(res1.status).toBe(400);
 
     // Missing email
-    let res2 = await request(app)
+    let res2 = await request(server)
       .post("/api/auth/signup")
       .send({ password: "newpass" , firstName: "My name", lastName: "my last name" });
     expect(res2.status).toBe(400);
     
     // Missing name
-    let res3 = await request(app)
+    let res3 = await request(server)
       .post("/api/auth/signup")
       .send({  email: "missingpass@example.com", password: "newpass" , firstName: "My name"});
     expect(res3.status).toBe(400);
     
     // Missing last name
-    let res4 = await request(app)
+    let res4 = await request(server)
       .post("/api/auth/signup")
       .send({  email: "missingpass@example.com", password: "newpass" , lastName: "my last name"});
     expect(res4.status).toBe(400);
 
     // Password too small
-    let res5 = await request(app)
+    let res5 = await request(server)
       .post("/api/auth/signup")
       .send({  email: "missingpass@example.com", password: "n1o]", firstName: "My name", lastName: "my last name"});
     expect(res5.status).toBe(400);
     
     // Password too big
-    let res6 = await request(app)
+    let res6 = await request(server)
       .post("/api/auth/signup")
       .send({  email: "missingpass@example.com", password: "ij23jrh98pco12k;em,dfl3emfi98epq2fhoidjoq", firstName: "My name", lastName: "my last name"});
     expect(res6.status).toBe(400);
@@ -190,13 +191,13 @@ describe("POST /api/auth/login", () => {
   
     // await User.create({ email: "jane@example.com", password: "pass123" });
   // First, manually create a user document in the in-memory DB
-  const signup_res = await request(app)
+  const signup_res = await request(server)
     .post("/api/auth/signup")
     .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
   expect(signup_res.status).toBe(201)
 
-  const res = await request(app)
+  const res = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123" });
 
@@ -217,14 +218,14 @@ describe("POST /api/auth/login", () => {
   
     // await User.create({ email: "jane@example.com", password: "pass123" });
   // First, manually create a user document in the in-memory DB
-  const signup_res = await request(app)
+  const signup_res = await request(server)
     .post("/api/auth/signup")
     .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
   expect(signup_res.status).toBe(201)
     
   // Missing password
-  const res1 = await request(app)
+  const res1 = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com"});
 
@@ -234,7 +235,7 @@ describe("POST /api/auth/login", () => {
   expect(res1.status).toBe(400);
 
   // Missing email
-  const res2 = await request(app)
+  const res2 = await request(server)
     .post("/api/auth/login")
     .send({ password: "pass123" });
 
@@ -244,7 +245,7 @@ describe("POST /api/auth/login", () => {
   expect(res2.status).toBe(400);
 
   // Missing everything
-  const res3 = await request(app)
+  const res3 = await request(server)
   .post("/api/auth/login")
   .send({});
 
@@ -261,7 +262,7 @@ describe("POST /api/auth/login", () => {
    *    response should be 404 Not Found
    */
   it("should return 404 if email is not found", async () => {
-    const res = await request(app)
+    const res = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123" });
 
@@ -310,19 +311,19 @@ describe("POST /api/auth/logout", () => {
      
     // await User.create({ email: "jane@example.com", password: "pass123" });
     // First, manually create a user document in the in-memory DB
-    const signup_res = await request(app)
+    const signup_res = await request(server)
     .post("/api/auth/signup")
     .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
     expect(signup_res.status).toBe(201)
 
-    const res_login = await request(app)
+    const res_login = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123" });
     
     expect(res_login.status).toBe(200); 
     
-    const res_out = await request(app)
+    const res_out = await request(server)
     .post("/api/auth/logout")
     .set("Authorization", `Bearer ${res_login.body.token}`)
     .send({ email: "jane@example.com"});
@@ -337,7 +338,7 @@ describe("POST /api/auth/logout", () => {
    */
   it("should log=out and return 200", async () => {
 
-   const res1 = await request(app)
+   const res1 = await request(server)
    .post("/api/auth/logout")
    .send({ email: "jane@example.com"});
 
@@ -386,17 +387,17 @@ describe("GET /api/auth/userinfo", () => {
    */
   it("should get-user-data and return 200", async () => {
      // Missing password
-    const res1 = await request(app)
+    const res1 = await request(server)
     .post("/api/auth/signup")
     .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
     expect(res1.status).toBe(201)
 
-    const res2 = await request(app)
+    const res2 = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123"});
 
-    const res3 = await request(app)
+    const res3 = await request(server)
     .get("/api/auth/userinfo")
     .set("Authorization", `Bearer ${res2.body.token}`)
     .send({});
@@ -414,16 +415,16 @@ describe("GET /api/auth/userinfo", () => {
 the database
    */
   it("return 404 if invalid token or user is not in database", async () => {
-  // const res_register = await request(app)
+  // const res_register = await request(server)
   // .post("/api/auth/signup")
   // .send({email: "this-is-my-email", password: "pass123"});
 
-  // const res_login = await request(app)
+  // const res_login = await request(server)
   // .post("/api/auth/login")
   // .send({email: "this-is-my-email", password: "pass123"});
 
 
-    const res1 = await request(app)
+    const res1 = await request(server)
     .get("/api/auth/userinfo")
     .set("Authorization", `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"}`)
     .send({});
@@ -431,7 +432,7 @@ the database
     expect(res1.status).toBe(404);
     expect(res1.body.message).toBe("User not found");
 
-    const res2 = await request(app)
+    const res2 = await request(server)
     .get("/api/auth/userinfo")
     .send({});
 
@@ -476,23 +477,23 @@ the database
    */
   it("should update the user information and return 200", async () => {
       // Missing password
-      const res_signup = await request(app)
+      const res_signup = await request(server)
       .post("/api/auth/signup")
       .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
   
       expect(res_signup.status).toBe(201)
 
-      const res_login = await request(app)
+      const res_login = await request(server)
       .post("/api/auth/login")
       .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       
 
-      const res = await request(app)
+      const res = await request(server)
       .post("/api/auth/update-profile")
       .set("Authorization", `Bearer ${res_login.body.token}`)
       .send({ firstName: "Jane", lastName: "somelastname"});
 
-      const res_info = await request(app)
+      const res_info = await request(server)
       .get("/api/auth/userinfo")
       .set("Authorization", `Bearer ${res_login.body.token}`)
       .send({});
@@ -513,22 +514,22 @@ the database
   */
   it("return 400 if didn't put sufficient profile update data ", async () => {
 
-    const res_signup = await request(app)
+    const res_signup = await request(server)
     .post("/api/auth/signup")
     .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
     expect(res_signup.status).toBe(201)
     
-    const res_login = await request(app)
+    const res_login = await request(server)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123"});
       
-    const res_update1 = await request(app)
+    const res_update1 = await request(server)
     .post("/api/auth/update-profile")
     .set("Authorization", `Bearer ${res_login.body.token}`)
     .send({});
 
-    const res_update2 = await request(app)
+    const res_update2 = await request(server)
     .post("/api/auth/update-profile")
     .send({ firstName: "Jane", lastName: "somelastname"});
 
@@ -543,3 +544,10 @@ the database
     expect(res_update2.status).toBe(400);
   })
 })
+
+afterAll((done) => {
+  server.close(() => {
+      console.log("Test server closed.");
+      done();
+  });
+});

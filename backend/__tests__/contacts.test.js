@@ -5,8 +5,9 @@ import request from "supertest"; // Supertest allows us to simulate HTTP request
 import mongoose from "mongoose";
 import expect from "expect";
 
-// const app = require("../index.js");
-const app = require("../index");
+const { server } = require("../index");
+
+// const app = require("../index");
 
 // const { User } = require("../routes/auth.js");
 const User = require("../models/User");
@@ -58,25 +59,25 @@ describe("POST /api/contacts/search", () => {
         
         // expect(userInDb).not.toBeNull();
 
-        const res_signup1 = await request(app)
+        const res_signup1 = await request(server)
         .post("/api/auth/signup")
         .send({ email: "john@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
-        const res_signup2 = await request(app)
+        const res_signup2 = await request(server)
         .post("/api/auth/signup")
         .send({ email: "mariya@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
     
-        const res_signup3 = await request(app)
+        const res_signup3 = await request(server)
         .post("/api/auth/signup")
         .send({ email: "boosh@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
-        const res_login1 = await request(app)
+        const res_login1 = await request(server)
         .post("/api/auth/login")
         .send({ email: "john@example.com", password: "pass123" });
 
         expect(res_login1.status).toBe(200);
 
         // Test a search item 
-        const res_getsearch1 = await request(app)
+        const res_getsearch1 = await request(server)
         .post("/api/contacts/search")
         .set("Authorization", `Bearer ${res_login1.body.token}`)
         .send({ searchTerm: "mariya@example.com"})
@@ -86,7 +87,7 @@ describe("POST /api/contacts/search", () => {
         expect(res_getsearch1.body.message).toBe("OK")
 
         // Test a search item 
-        const res_getsearch2 = await request(app)
+        const res_getsearch2 = await request(server)
         .post("/api/contacts/search")
         .set("Authorization", `Bearer ${res_login1.body.token}`)
         .send({ searchTerm: ".com"})
@@ -96,7 +97,7 @@ describe("POST /api/contacts/search", () => {
         expect(res_getsearch2.body.message).toBe("OK")
 
         // Test a search item 
-        const res_getsearch3 = await request(app)
+        const res_getsearch3 = await request(server)
         .post("/api/contacts/search")
         .set("Authorization", `Bearer ${res_login1.body.token}`)
         .send({ searchTerm: "someone"})
@@ -106,7 +107,7 @@ describe("POST /api/contacts/search", () => {
         expect(res_getsearch3.body.message).toBe("OK")
 
         // Test a search item 
-        const res_getsearch4 = await request(app)
+        const res_getsearch4 = await request(server)
         .post("/api/contacts/search")
         .set("Authorization", `Bearer ${res_login1.body.token}`)
         .send({ searchTerm: "last"})
@@ -116,7 +117,7 @@ describe("POST /api/contacts/search", () => {
         expect(res_getsearch4.body.message).toBe("OK")
       
           // Test a search item 
-          const res_getsearch5 = await request(app)
+          const res_getsearch5 = await request(server)
           .post("/api/contacts/search")
           .set("Authorization", `Bearer ${res_login1.body.token}`)
           .send({ searchTerm: "nonsense"})
@@ -132,19 +133,19 @@ describe("POST /api/contacts/search", () => {
   */
   it("should detect invalid user tokens, retrive text and return 400", async () => {
 
-    const res_signup1 = await request(app)
+    const res_signup1 = await request(server)
     .post("/api/auth/signup")
     .send({ email: "john@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
     expect(res_signup1.status).toBe(201);
-    const res_signup2 = await request(app)
+    const res_signup2 = await request(server)
     .post("/api/auth/signup")
     .send({ email: "mariya@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
     expect(res_signup2.status).toBe(201);
-    const res_signup3 = await request(app)
+    const res_signup3 = await request(server)
     .post("/api/auth/signup")
     .send({ email: "boosh@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
     expect(res_signup3.status).toBe(201);
-    const res_login1 = await request(app)
+    const res_login1 = await request(server)
     .post("/api/auth/login")
     .send({ email: "john@example.com", password: "pass123" });
 
@@ -152,7 +153,7 @@ describe("POST /api/contacts/search", () => {
 
 
     // Test a search item with no search item
-    const res_getsearch1 = await request(app)
+    const res_getsearch1 = await request(server)
     .post("/api/contacts/search")
     .set("Authorization", `Bearer ${res_login1.body.token}`)
     .send({})
@@ -161,7 +162,7 @@ describe("POST /api/contacts/search", () => {
     expect(res_getsearch1.body.message).toBe("Missing searchTerm")
     
     // Test a search item with no search item
-    const res_getsearch2 = await request(app)
+    const res_getsearch2 = await request(server)
     .post("/api/contacts/search")
     .send({ searchTerm: "Jana"})
 
@@ -170,7 +171,7 @@ describe("POST /api/contacts/search", () => {
     expect(res_getsearch2.body.message).toBe("Unauthorized: No token provided")
     
     // Test a search item with no search item
-    const res_getsearch3 = await request(app)
+    const res_getsearch3 = await request(server)
     .post("/api/contacts/search")
     .set("Authorization", `Bearer ${"Some crap123"}`)
     .send({ searchTerm: "Jana"})
@@ -217,26 +218,26 @@ describe("POST /api/contacts/all-contacts", () => {
     */
     it("should get the list of all contacts and return 200", async () => {
       
-      const res_signup1 = await request(app)
+      const res_signup1 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "john@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup1.status).toBe(201);
-      const res_signup2 = await request(app)
+      const res_signup2 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "mariya@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup2.status).toBe(201);
-      const res_signup3 = await request(app)
+      const res_signup3 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "boosh@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup3.status).toBe(201);
 
-      const res_login1 = await request(app)
+      const res_login1 = await request(server)
       .post("/api/auth/login")
       .send({ email: "john@example.com", password: "pass123" });
       expect(res_login1.status).toBe(200);
 
       // Test a search item with no search item
-      const res_getall1 = await request(app)
+      const res_getall1 = await request(server)
       .get("/api/contacts/all-contacts")
       .set("Authorization", `Bearer ${res_login1.body.token}`)
       .send({})
@@ -245,13 +246,13 @@ describe("POST /api/contacts/all-contacts", () => {
       expect(res_getall1.status).toBe(200); 
       expect(res_getall1.body.contacts.length).toBe(3);
 
-      const res_signup4 = await request(app)
+      const res_signup4 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "someotherguy@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup4.status).toBe(201);
 
       // Test a search item with no search item
-      const res_getall2 = await request(app)
+      const res_getall2 = await request(server)
       .get("/api/contacts/all-contacts")
       .set("Authorization", `Bearer ${res_login1.body.token}`)
       .send({})
@@ -266,26 +267,26 @@ describe("POST /api/contacts/all-contacts", () => {
     */
      it("should fail and return 400", async () => {
 
-      const res_signup1 = await request(app)
+      const res_signup1 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "john@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup1.status).toBe(201);
-      const res_signup2 = await request(app)
+      const res_signup2 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "mariya@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup2.status).toBe(201);
-      const res_signup3 = await request(app)
+      const res_signup3 = await request(server)
       .post("/api/auth/signup")
       .send({ email: "boosh@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       expect(res_signup3.status).toBe(201);
 
-      const res_login1 = await request(app)
+      const res_login1 = await request(server)
       .post("/api/auth/login")
       .send({ email: "john@example.com", password: "pass123" });
       expect(res_login1.status).toBe(200);
 
       // Test a search item with no search item
-      const res_getall1 = await request(app)
+      const res_getall1 = await request(server)
       .get("/api/contacts/all-contacts")
       .set("Authorization", `Bearer ${"Some Crap"}`)
       .send({})
@@ -294,7 +295,7 @@ describe("POST /api/contacts/all-contacts", () => {
       expect(res_getall1.status).toBe(400); 
 
       // Test a search item with no search item
-      const res_getall2 = await request(app)
+      const res_getall2 = await request(server)
       .get("/api/contacts/all-contacts")
       .send({})
 
@@ -302,3 +303,11 @@ describe("POST /api/contacts/all-contacts", () => {
       expect(res_getall2.status).toBe(400); 
      })
 })
+
+
+afterAll((done) => {
+  server.close(() => {
+      console.log("Test server closed.");
+      done();
+  });
+});
