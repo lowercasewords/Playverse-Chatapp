@@ -1,12 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
-const Message = require("../models/Message"); // Assuming you have a Message model
+const Message = require("../models/Message"); 
 
 
 const jwt = require("jsonwebtoken");
 
-// router.use(authMiddleware);  // Apply authentication middleware globally
 
 router.post("/search", async (req, res) => {
     try {
@@ -109,7 +108,7 @@ router.get("/get-contacts-for-list", async (req, res) => {
 });
 
 
-router.delete("/delete-dm/:dmId", authMiddleware, async (req, res) => {
+router.delete("/delete-dm/:dmId", async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(400).json({ message: "Unauthorized: No token provided" });

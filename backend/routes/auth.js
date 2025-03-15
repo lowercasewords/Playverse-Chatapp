@@ -218,6 +218,3 @@ router.post("/update-profile", async (req, res) => {
 });
 
 module.exports = router;
-// console.log(router)
-// console.log("Number of routes: " +router.length)
-
