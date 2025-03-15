@@ -1,3 +1,4 @@
+// src/components/Profile.js
 import React, { useState, useEffect } from "react";
 import authService from "../services/authService";
 
@@ -5,8 +6,7 @@ function Profile() {
   const [profile, setProfile] = useState({
     email: "",
     firstName: "",
-    lastName: "",
-    color: ""
+    lastName: ""
   });
   const [message, setMessage] = useState("");
 
@@ -14,7 +14,9 @@ function Profile() {
     async function fetchProfile() {
       try {
         const data = await authService.getUserInfo();
-        setProfile(data);
+        // If the backend returns `color`, ignore it here
+        const { email, firstName, lastName } = data;
+        setProfile({ email, firstName, lastName });
       } catch (err) {
         console.error("Error fetching profile", err);
       }
@@ -22,14 +24,20 @@ function Profile() {
     fetchProfile();
   }, []);
 
-  const handleChange = (e) =>
+  const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // If your backend expects color, it won’t be sent here
       const updated = await authService.updateProfile(profile);
-      setProfile(updated);
+      setProfile({
+        email: updated.email,
+        firstName: updated.firstName,
+        lastName: updated.lastName
+      });
       setMessage("Profile updated successfully");
     } catch (err) {
       setMessage("Failed to update profile");
@@ -59,15 +67,6 @@ function Profile() {
             type="text"
             name="lastName"
             value={profile.lastName || ""}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label>Favorite Color:</label>
-          <input
-            type="text"
-            name="color"
-            value={profile.color || ""}
             onChange={handleChange}
           />
         </div>

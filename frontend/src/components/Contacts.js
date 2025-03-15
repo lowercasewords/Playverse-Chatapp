@@ -1,32 +1,61 @@
+// src/components/Contacts.js
 import React, { useState, useEffect } from "react";
 import contactService from "../services/contactService";
 
 function Contacts() {
   const [contacts, setContacts] = useState([]);
+  const [newContactEmail, setNewContactEmail] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchContacts() {
-      try {
-        const data = await contactService.getContacts();
-        setContacts(data);
-      } catch (error) {
-        console.error("Error fetching contacts", error);
-      }
-    }
     fetchContacts();
   }, []);
+
+  async function fetchContacts() {
+    try {
+      const data = await contactService.getContacts();
+      // Adjust according to your backend response structure
+      setContacts(data.contacts || data);
+    } catch (err) {
+      console.error("Error fetching contacts:", err);
+      setError("Failed to load contacts");
+    }
+  }
+
+  const handleAddContact = async (e) => {
+    e.preventDefault();
+    try {
+      await contactService.addContact({ email: newContactEmail });
+      setNewContactEmail("");
+      fetchContacts();
+    } catch (err) {
+      console.error("Error adding contact:", err);
+      setError("Failed to add contact");
+    }
+  };
 
   return (
     <div>
       <h2>Your Contacts</h2>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      <form onSubmit={handleAddContact} style={{ marginBottom: "20px" }}>
+        <div>
+          <label>Contact Email:</label>
+          <input
+            type="email"
+            value={newContactEmail}
+            onChange={(e) => setNewContactEmail(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit">Add Contact</button>
+      </form>
       {contacts.length === 0 ? (
         <p>No contacts available.</p>
       ) : (
         <ul>
           {contacts.map((contact) => (
-            <li key={contact.id}>
-              {contact.name} - {contact.email}
-            </li>
+            <li key={contact._id || contact.id}>{contact.email}</li>
           ))}
         </ul>
       )}

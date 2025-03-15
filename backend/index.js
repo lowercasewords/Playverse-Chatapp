@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
 
 // Start Server
 if (process.env.NODE_ENV !== "test") {
-    const PORT = process.env.PORT
+    const PORT = process.env.PORT || 5000;
     server.listen(PORT, HOST, () => console.log(`Server running at http://${HOST}:${PORT}/`));
   }
 
