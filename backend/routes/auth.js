@@ -4,6 +4,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+const password_length_max = 20
+const password_length_min = 6
+
 const saltRounds = 10; // How much salt to use for hashing
 
 // Secret key for JWT (store in .env)
@@ -12,10 +15,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 // 3.1 Signup
 router.post("/signup", async (req, res) => {
     
-    const { email, password } = req.body;
-    if (!email || !password) 
+    const { email, password, firstName, lastName } = req.body;
+    if (!email || !password || !firstName || !lastName) 
     {
-        return res.status(400).json({ message: "Missing email or password" });
+        return res.status(400).json({ message: "Missing email, password, first or lastnames" });
     }
 
     try {
@@ -23,15 +26,24 @@ router.post("/signup", async (req, res) => {
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(409).json({ message: "Email already registered" });
 
+        if(password.length < password_length_min) {
+            res.status(400).json({ message: "Password required at least " + password_length_min + " characters" });
+        }
+        if(password.length > password_length_max) {
+            res.status(400).json({ message: "Password required to be at most " + password_length_max + " characters" });
+        }
+
         // During user registration, hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        const newUser = new User({ email, password: hashedPassword, firstName: null, lastName: null, color: null });
+        const newUser = new User({ email, password: hashedPassword, firstName, lastName, color: null });
         await newUser.save();
 
         res.status(201).json({ message: "User successfully created" });
     } catch (error) {
-        res.status(500).json({ message: "Internal Server Error" });
+        if (!res.headersSent) {  // Check if headers have been sent before responding again
+            res.status(500).json({ message: "Internal Server Error" });
+        } 
     }
 });
 
@@ -74,7 +86,20 @@ router.post("/logout", (req, res) => {
 
 // 3.3 Logout
 router.post("/logout", (req, res) => {
-    res.status(200).json({ message: "Logout successful" });
+
+    // Check for token in the Authorization header
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
+ 
+    const token = authHeader.split(" ")[1]; // "Bearer <token>"
+     
+     // Optional: You can implement token blacklisting here if desired
+     // (This step is not mandatory for most cases)
+     
+     // Log out simply by instructing the client to delete the token client-side
+     res.status(200).json({ message: "Logout successful" });
 });
 
 /*
@@ -180,7 +205,7 @@ router.post("/update-profile", async (req, res) => {
             
             // Respond with user data (excluding sensitive information)
             res.status(200).json({
-                firstname: user.firstName,
+                firstName: user.firstName,
                 lastName: user.lastName,
                 message: "User data found"
             });

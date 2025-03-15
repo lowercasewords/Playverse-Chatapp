@@ -279,7 +279,7 @@
   },
   "scripts": {
     "dev": "node index.js",
-    "test": "jest"
+    "test": "jest --runInBand"
   },
   "repository": {
     "type": "git",

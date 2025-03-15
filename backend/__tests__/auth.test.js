@@ -5,7 +5,9 @@ import request from "supertest"; // Supertest allows us to simulate HTTP request
 import mongoose from "mongoose";
 import expect from "expect";
 
-const app = require("../index.js");
+// const app = require("../index.js");
+const app = require("../index");
+
 // const { User } = require("../routes/auth.js");
 const User = require("../models/User");
 const { connectDB } = require('../config'); // Adjust the path if necessary
@@ -36,7 +38,6 @@ describe("POST /api/auth/signup", () => {
    * and ensure no open handles remain (important in Jest).
    */
   afterAll(async () => {
-    console.log("Disconnected")
     await mongoose.disconnect();
   });
 
@@ -66,7 +67,7 @@ describe("POST /api/auth/signup", () => {
      */
     const res = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "john@example.com", password: "secret123" });
+      .send({ email: "john@example.com", password: "secret123", firstName: "my name", lastName: "last name "});
 
     // We also expect the response body to have a message with success text
     expect(res.body.message).toBe("User successfully created");
@@ -89,12 +90,12 @@ describe("POST /api/auth/signup", () => {
    */
   it("should return 409 if email is already registered", async () => {
     // First, manually create a user document in the in-memory DB
-    await User.create({ email: "jane@example.com", password: "pass" });
+    await User.create({ email: "jane@example.com", password: "pass", firstName: "Jane someone 21", lastName: "Jane's last12" });
 
     // Now, attempt to sign up again with the same email
     const res = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "jane@example.com", password: "newpass" });
+      .send({ email: "jane@example.com", password: "newpass", firstName: "Jane someone", lastName: "Jane's last" });
 
     // Expect 400 status code for a duplicate email scenario
     expect(res.status).toBe(409);
@@ -106,18 +107,42 @@ describe("POST /api/auth/signup", () => {
    * 3) Test the scenario where the request is missing an email or a password:
    *    The endpoint should respond with a 400 for either missing field.
    */
-  it("should return 400 if email or password is missing", async () => {
+  it("should return 400 if data is missing, or the password boundries do not persist", async () => {
     // Missing password
-    let res = await request(app)
+    let res1 = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "missingpass@example.com" });
-    expect(res.status).toBe(400);
+      .send({ email: "missingpass@example.com", firstName: "My name", lastName: "my last name" });
+    expect(res1.status).toBe(400);
 
     // Missing email
-    res = await request(app)
+    let res2 = await request(app)
       .post("/api/auth/signup")
-      .send({ password: "newpass" });
-    expect(res.status).toBe(400);
+      .send({ password: "newpass" , firstName: "My name", lastName: "my last name" });
+    expect(res2.status).toBe(400);
+    
+    // Missing name
+    let res3 = await request(app)
+      .post("/api/auth/signup")
+      .send({  email: "missingpass@example.com", password: "newpass" , firstName: "My name"});
+    expect(res3.status).toBe(400);
+    
+    // Missing last name
+    let res4 = await request(app)
+      .post("/api/auth/signup")
+      .send({  email: "missingpass@example.com", password: "newpass" , lastName: "my last name"});
+    expect(res4.status).toBe(400);
+
+    // Password too small
+    let res5 = await request(app)
+      .post("/api/auth/signup")
+      .send({  email: "missingpass@example.com", password: "n1o]", firstName: "My name", lastName: "my last name"});
+    expect(res5.status).toBe(400);
+    
+    // Password too big
+    let res6 = await request(app)
+      .post("/api/auth/signup")
+      .send({  email: "missingpass@example.com", password: "ij23jrh98pco12k;em,dfl3emfi98epq2fhoidjoq", firstName: "My name", lastName: "my last name"});
+    expect(res6.status).toBe(400);
   });
 });
 
@@ -167,7 +192,9 @@ describe("POST /api/auth/login", () => {
   // First, manually create a user document in the in-memory DB
   const signup_res = await request(app)
     .post("/api/auth/signup")
-    .send({ email: "jane@example.com", password: "pass123" });
+    .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
+
+  expect(signup_res.status).toBe(201)
 
   const res = await request(app)
     .post("/api/auth/login")
@@ -192,7 +219,9 @@ describe("POST /api/auth/login", () => {
   // First, manually create a user document in the in-memory DB
   const signup_res = await request(app)
     .post("/api/auth/signup")
-    .send({ email: "jane@example.com", password: "pass123" });
+    .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
+
+  expect(signup_res.status).toBe(201)
     
   // Missing password
   const res1 = await request(app)
@@ -275,20 +304,49 @@ describe("POST /api/auth/logout", () => {
   });
 
   /**
-   * 1) Test the logging out of the account
+   * 1) Test the logging out of the account successfully
    */
   it("should log=out and return 200", async () => {
-     // Missing password
-    const res1 = await request(app)
+     
+    // await User.create({ email: "jane@example.com", password: "pass123" });
+    // First, manually create a user document in the in-memory DB
+    const signup_res = await request(app)
+    .post("/api/auth/signup")
+    .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
+
+    expect(signup_res.status).toBe(201)
+
+    const res_login = await request(app)
+    .post("/api/auth/login")
+    .send({ email: "jane@example.com", password: "pass123" });
+    
+    expect(res_login.status).toBe(200); 
+    
+    const res_out = await request(app)
     .post("/api/auth/logout")
+    .set("Authorization", `Bearer ${res_login.body.token}`)
     .send({ email: "jane@example.com"});
 
-    // We also expect the response body to have a message with success text
-    expect(res1.body.message).toBe("Logout successful");
-    // We expect a 400 (Created) status code
-    expect(res1.status).toBe(200);
+    expect(res_out.body.message).toBe("Logout successful");
+    expect(res_out.status).toBe(200);
 
   })
+
+  /**
+   * 1) Test the logging out of the account with nonexisting token
+   */
+  it("should log=out and return 200", async () => {
+
+   const res1 = await request(app)
+   .post("/api/auth/logout")
+   .send({ email: "jane@example.com"});
+
+   // We also expect the response body to have a message with success text
+   expect(res1.body.message).toBe("Unauthorized: No token provided");
+   // We expect a 400 (Created) status code
+   expect(res1.status).toBe(401);
+
+ })
 })
 
 
@@ -330,7 +388,9 @@ describe("GET /api/auth/userinfo", () => {
      // Missing password
     const res1 = await request(app)
     .post("/api/auth/signup")
-    .send({ email: "jane@example.com", password: "pass123"});
+    .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
+
+    expect(res1.status).toBe(201)
 
     const res2 = await request(app)
     .post("/api/auth/login")
@@ -341,11 +401,11 @@ describe("GET /api/auth/userinfo", () => {
     .set("Authorization", `Bearer ${res2.body.token}`)
     .send({});
 
-    expect(res3.body.email == "jane@example.com")
-    expect(res3.body.firstName).toBeNull()
-    expect(res3.body.lastName).toBeNull()
+    expect(res3.body.email).toBe("jane@example.com")
+    expect(res3.body.firstName).toBe("Jane someone")
+    expect(res3.body.lastName).toBe("Jane's last")
+    expect(res3.body.email).toBe("jane@example.com");
     expect(res3.status).toBe(200);
-    expect(res3.body.email).not.toBeNull();
 
   })
 
@@ -363,20 +423,20 @@ the database
   // .send({email: "this-is-my-email", password: "pass123"});
 
 
-  const res1 = await request(app)
-  .get("/api/auth/userinfo")
-  .set("Authorization", `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"}`)
-  .send({});
-  
-  expect(res1.status).toBe(404);
-  expect(res1.body.message).toBe("User not found");
+    const res1 = await request(app)
+    .get("/api/auth/userinfo")
+    .set("Authorization", `Bearer ${"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"}`)
+    .send({});
+    
+    expect(res1.status).toBe(404);
+    expect(res1.body.message).toBe("User not found");
 
-  const res2 = await request(app)
-  .get("/api/auth/userinfo")
-  .send({});
+    const res2 = await request(app)
+    .get("/api/auth/userinfo")
+    .send({});
 
-  expect(res2.status).toBe(404);
-  expect(res2.body.message).toBe("Unauthorized: No token provided");
+    expect(res2.status).toBe(404);
+    expect(res2.body.message).toBe("Unauthorized: No token provided");
 
  })
 })
@@ -418,11 +478,13 @@ the database
       // Missing password
       const res_signup = await request(app)
       .post("/api/auth/signup")
-      .send({ email: "jane@example.com", password: "pass123"});
+      .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
   
+      expect(res_signup.status).toBe(201)
+
       const res_login = await request(app)
       .post("/api/auth/login")
-      .send({ email: "jane@example.com", password: "pass123"});
+      .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
       
 
       const res = await request(app)
@@ -435,26 +497,28 @@ the database
       .set("Authorization", `Bearer ${res_login.body.token}`)
       .send({});
 
-      expect(res.body.firstName == "Jane")
-      expect(res.body.lastName == "somelastname")
-      expect(res.body.message).toBe("User data found");
       expect(res.status).toBe(200);
-
-      expect(res_info.body.firstName == "Jane")
-      expect(res_info.body.lastName == "somelastname")
-      expect(res_info.body.message).toBe("User data found");
+      expect(res.body.firstName).toBe("Jane")
+      expect(res.body.lastName).toBe("somelastname")
+      expect(res.body.message).toBe("User data found");
+      
       expect(res_info.status).toBe(200);
+      expect(res_info.body.firstName).toBe("Jane")
+      expect(res_info.body.lastName).toBe("somelastname")
+      expect(res_info.body.message).toBe("User data found");
   })
 
   /*
    * 2) Test the incorrect or insufficient values put in 
   */
-  it("", async () => {
+  it("return 400 if didn't put sufficient profile update data ", async () => {
 
     const res_signup = await request(app)
     .post("/api/auth/signup")
-    .send({ email: "jane@example.com", password: "pass123"});
+    .send({ email: "jane@example.com", password: "pass123", firstName: "Jane someone", lastName: "Jane's last" });
 
+    expect(res_signup.status).toBe(201)
+    
     const res_login = await request(app)
     .post("/api/auth/login")
     .send({ email: "jane@example.com", password: "pass123"});
