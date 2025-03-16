@@ -107,20 +107,19 @@ router.get("/get-contacts-for-list", async (req, res) => {
     }
 });
 
-
 router.delete("/delete-dm/:dmId", async (req, res) => {
+    console.log("Delete request gotten!")
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(400).json({ message: "Unauthorized: No token provided" });
 
         const token = authHeader.split(" ")[1]; // "Bearer <token>"
-            jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-                if (err) return res.status(400).json({ message: "Forbidden: Invalid token" });
-    
-                req.user = decoded; // Attach user data to request
-    
-            const userId = req.user.id;
+        jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+            if (err) return res.status(400).json({ message: "Forbidden: Invalid token" });
 
+            req.user = decoded; // Attach user data to request
+
+            const userId = req.user.id; // Make sure this is the right property
             const { dmId } = req.params;
             if (!dmId) {
                 return res.status(400).json({ message: "Missing or invalid dmId" });
@@ -129,8 +128,8 @@ router.delete("/delete-dm/:dmId", async (req, res) => {
             // Delete messages where both users are involved
             await Message.deleteMany({
                 $or: [
-                    { sender: req.user.userId, receiver: dmId },
-                    { sender: dmId, receiver: req.user.userId }
+                    { sender: userId, receiver: dmId },
+                    { sender: dmId, receiver: userId }
                 ]
             });
 
@@ -140,5 +139,6 @@ router.delete("/delete-dm/:dmId", async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 });
+
 
 module.exports = router;
