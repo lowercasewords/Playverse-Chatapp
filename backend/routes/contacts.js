@@ -6,6 +6,41 @@ const Message = require("../models/Message");
 
 const jwt = require("jsonwebtoken");
 
+//Taka code
+// NEW ROUTE: GET /api/contacts/ - Get current user's contacts (populated)
+router.get("/", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) 
+        return res.status(400).json({ message: "Unauthorized: No token provided" });
+  
+      const token = authHeader.split(" ")[1]; // "Bearer <token>"
+      jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        if (err) 
+          return res.status(400).json({ message: "Forbidden: Invalid token" });
+  
+        req.user = decoded; // Attach user data to request
+  
+        // IMPORTANT: Use req.user.userId if your auth route signs the token with { userId: user._id }
+        const currentUserId = req.user.userId; 
+        
+        // Find the current user and populate the contacts field
+        const currentUser = await User.findById(currentUserId).populate("contacts", "email firstName lastName _id");
+        if (!currentUser) {
+          return res.status(404).json({ message: "Current user not found" });
+        }
+        
+        // Return the current user's contacts
+        res.status(200).json({ contacts: currentUser.contacts, message: "OK" });
+      });
+    } catch (error) {
+      console.error("Error fetching current user's contacts:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+
+//end taka code 
+
 
 router.post("/search", async (req, res) => {
     try {
@@ -107,6 +142,58 @@ router.get("/get-contacts-for-list", async (req, res) => {
     }
 });
 
+//this is taka code 
+// POST /api/contacts - Add a contact by email
+// POST /api/contacts - Add a contact by email and persist the contact relationship
+router.post("/", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader)
+        return res.status(400).json({ message: "Unauthorized: No token provided" });
+  
+      // Extract token from header ("Bearer <token>")
+      const token = authHeader.split(" ")[1];
+      jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+        if (err)
+          return res.status(400).json({ message: "Forbidden: Invalid token" });
+        
+        req.user = decoded; // Attach user data to request
+        const currentUserId = req.user.userId; // Save current user's ID
+        
+        // Expect the request body to contain an email
+        const { email } = req.body;
+        if (!email) {
+          return res.status(400).json({ message: "Missing email in request body" });
+        }
+  
+        // Look up the user by email that will be added as a contact
+        const contactUser = await User.findOne({ email });
+        if (!contactUser) {
+          return res.status(404).json({ message: "No user found with that email" });
+        }
+  
+        // Retrieve the current user's document and add the contact if not already added
+        const currentUser = await User.findById(currentUserId);
+        if (!currentUser) {
+          return res.status(404).json({ message: "Current user not found" });
+        }
+  
+        // Check if the contact is already in the user's contacts array
+        if (!currentUser.contacts.includes(contactUser._id)) {
+          currentUser.contacts.push(contactUser._id);
+          await currentUser.save();
+        }
+  
+        // Return the added contact
+        return res.status(201).json({ message: "Contact added", contact: contactUser });
+      });
+    } catch (error) {
+      console.error("Error adding contact:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  });
+  
+//end of taka code 
 router.delete("/delete-dm/:dmId", async (req, res) => {
     try {
         const authHeader = req.headers.authorization;

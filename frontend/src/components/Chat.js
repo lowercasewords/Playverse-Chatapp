@@ -4,7 +4,7 @@ import io from "socket.io-client";
 import contactService from "../services/contactService"; // Where you fetch contacts
 
 // Adjust the URL/port to match your backend
-const socket = io("http://localhost:5000");
+const socket = io("http://localhost:5173");
 
 function Chat() {
   const [contacts, setContacts] = useState([]);
