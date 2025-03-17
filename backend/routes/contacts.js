@@ -108,7 +108,6 @@ router.get("/get-contacts-for-list", async (req, res) => {
 });
 
 router.delete("/delete-dm/:dmId", async (req, res) => {
-    console.log("Delete request gotten!")
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.status(400).json({ message: "Unauthorized: No token provided" });
@@ -121,9 +120,12 @@ router.delete("/delete-dm/:dmId", async (req, res) => {
 
             const userId = req.user.id; // Make sure this is the right property
             const { dmId } = req.params;
+
             if (!dmId) {
                 return res.status(400).json({ message: "Missing or invalid dmId" });
+            
             }
+            console.log("Id is + " + dmId)
 
             // Delete messages where both users are involved
             await Message.deleteMany({
