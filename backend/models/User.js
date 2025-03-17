@@ -5,7 +5,8 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     firstName: { type: String },
     lastName: { type: String },
-    color: { type: String }
+    color: { type: String },
+    contacts: [{type: mongoose.Schema.Types.ObjectId, ref: "User" }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", UserSchema);
