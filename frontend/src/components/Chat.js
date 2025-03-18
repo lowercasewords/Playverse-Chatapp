@@ -32,7 +32,7 @@ function Chat() {
       // If the message is for the currently selected contact (or from them), add it to the conversation
       if (
         (messageData.sender.id === selectedContact?._id ||
-          messageData.recipient.id === selectedContact?._id)
+          messageData.receiver.id === selectedContact?._id)
       ) {
         setMessages((prev) => [...prev, messageData]);
       }
@@ -56,9 +56,9 @@ function Chat() {
 
     // Example: replace "currentUserId" with your real user ID from auth
     const sender = "currentUserId";
-    const recipient = selectedContact._id;
+    const receiver = selectedContact._id;
 
-    socket.emit("sendMessage", { sender, recipient, content: newMessage });
+    socket.emit("sendMessage", { sender, receiver, content: newMessage });
     setNewMessage("");
   };
 
