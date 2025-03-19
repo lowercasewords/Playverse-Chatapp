@@ -1,3 +1,5 @@
+# How to replicate the project!
+
 This readme file will give you steps in order to replicate the installation process.
 - Before doing anything of course, download the repository. 
 - Make sure to rename the repository you've downloaded to "Playverse"
@@ -60,12 +62,13 @@ Regardless of the method you chose to set up your database, make sure that:
 
 ## Setting up the Jest testing
 
-1. If you really want to use jest testing, please run the installation command
-    - **"npm install --save-dev jest @shelf/jest-mongodb supertest babel-jest @babel/preset-env @babel/core"**
-
-2. You will require additional database to use jest testing. 
+1. You will require additional database to use jest testing. 
     - Please create additional testing database with different name using the method of your choice in the same cluster. 
     - Replace the existing testing database connection in **MONGO_URI_TEST** variable located in the **.env** folder with your database connection.
+
+2. If you really want to use jest testing, it should already be installed in the previous step. Otherwise
+    - If the dependancies are missing, please run the installation command Below
+        **"npm install --save-dev jest @shelf/jest-mongodb supertest babel-jest @babel/preset-env @babel/core"**
 
 3. To start Jest testing, please run:
     - **""npm test""**
