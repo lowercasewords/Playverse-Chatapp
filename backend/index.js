@@ -10,6 +10,7 @@ const messagesRoutes = require("./routes/messages");
 const Message = require("./models/Message"); 
 const User = require("./models/User");
 const HOST = 'localhost';
+const PORT = process.env.PORT
 
 require("dotenv").config();
 
@@ -106,4 +107,4 @@ if (process.env.NODE_ENV !== "test") {
 
 
 // Exportst the express application
-module.exports = { app, server }; 
+module.exports = { app, server, HOST, PORT };

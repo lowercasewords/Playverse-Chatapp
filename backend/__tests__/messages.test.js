@@ -48,9 +48,17 @@ describe("Live Messaging Service", () => {
         client1.on("connect", checkConnected);
         client2.on("connect", checkConnected);
     
-        client1.on("connect_error", (err) => console.error("Client1 connection error:", err));
-        client2.on("connect_error", (err) => console.error("Client2 connection error:", err));
+        client1.on("connect_error", (err) => {
+            console.error("Client1 connection error:", err);
+            done(err);
+        });
+    
+        client2.on("connect_error", (err) => {
+            console.error("Client2 connection error:", err);
+            done(err);
+        });
     });
+    
     
     
     afterEach(() => {
@@ -79,7 +87,7 @@ describe("Live Messaging Service", () => {
             client1.emit("sendMessage", message);
             console.log("After sending a message");
         }, 500); // Small delay to ensure registration
-    
+
         // Listen for the message on client2
         client2.once("receiveMessage", (receivedMessage) => {
             console.log("Received message:", receivedMessage);

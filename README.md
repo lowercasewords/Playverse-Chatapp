@@ -80,7 +80,6 @@ Regardless of the method you chose to set up your database, make sure that:
 
 
 
-
 # Report
 
 ## Code Structure and tests
