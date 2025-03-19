@@ -20,18 +20,17 @@ router.post("/signup", async (req, res) => {
     {
         return res.status(400).json({ message: "Missing email, password, first or lastnames" });
     }
+    if(password.length < password_length_min) {
+        res.status(400).json({ message: "Password required at least " + password_length_min + " characters" });
+    }
+    if(password.length > password_length_max) {
+        res.status(400).json({ message: "Password required to be at most " + password_length_max + " characters" });
+    }
 
     try {
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(409).json({ message: "Email already registered" });
-
-        if(password.length < password_length_min) {
-            res.status(400).json({ message: "Password required at least " + password_length_min + " characters" });
-        }
-        if(password.length > password_length_max) {
-            res.status(400).json({ message: "Password required to be at most " + password_length_max + " characters" });
-        }
 
         // During user registration, hash the password before saving
         const hashedPassword = await bcrypt.hash(password, saltRounds);
