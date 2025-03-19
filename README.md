@@ -21,7 +21,7 @@ This readme file will give you steps in order to replicate the installation proc
 1. To start the server, use the command
     "npm run dev"  or "node index.js"
 
-2. Don't worry about the database console message, we will set it up shortly
+2. We haven't set up our database yet, so it running it will give you an error like this: **"MongoDB Connection Error: Invalid scheme, expected connection string to start with "mongodb://" or "mongodb+srv://""**
 
 # Setting up the database
 
@@ -32,20 +32,26 @@ Our server will require the connection to the mongoDB database, there are two wa
     2. Install according to your OS instructions
     3. Start the database by running **"mongod"**
 
-2. (Option #2) Use Atlas mongoDB database cloud hosting 
+2. (Option #2, preferred) Use Atlas mongoDB database cloud hosting 
     1. Create an account on https://www.mongodb.com/atlas
     2. Create a free cluster with desired security settings
-
-    3. Create the database with any name, this project used the name **"cs-314-project"**
+    3. Create the database with any name, this project used the name **cs-314-project**, Make sure that your database contains the following collections:
+        - **channels**
+        - **messages**
+        - **users**
     4. Install the mongoDB Compass GUI to interact with your cluster of databases https://www.mongodb.com/try/download/compass
-    5. Make sure you can set-up the new connection in compass GUI to add your cluster created on Atlas
-    6. Copy the connection string specific to your database in compass GUI for the next set
+    5. Make sure you can set-up the new connection in compass GUI to connect to your cluster created on Atlas
+    6. Copy the connection string of the cluster on compass GUI. *Don't forget* that connection string also needs the name of the databse appended to the end of it
+        - For example, cluster connection string copied format is *mongodb+srv://myadmin:someproject@cluster0.swm0c.mongodb.net/*
+        - If the name of the database in the cluster you're using in named **cs-314-project**, then append to get *mongodb+srv://myadmin:someproject@cluster0.swm0c.mongodb.net/**cs-314-project***
 
 Note that this project used Atlas to set up mongoDB database.
 
 Regardless of the method you chose to set up your database, make sure that:
 1. Make sure your mondoDB database is up and running
-2. You obtain the connection string of your database
+2. You obtain the connection string of your database. *Don't forget* that connection string also needs the name of the databse appended to the end of it
+    - For example, cluster connection string copied format is *mongodb+srv://myadmin:someproject@cluster0.swm0c.mongodb.net/*
+    - If the name of the database in the cluster you're using in named **cs-314-project**, then append to get *mongodb+srv://myadmin:someproject@cluster0.swm0c.mongodb.net/**cs-314-project***
 3. Replace the existing database connection in **MONGO_URI_NORMAL** variable located in the **.env** folder with your database connection.
 4. Make sure that your database contains the following collections:
     - **channels**
