@@ -9,6 +9,9 @@ const signup = async (data) => {
 
 const login = async (data) => {
   const res = await axios.post(API_URL + "login", data);
+  // Store both token and userId in localStorage
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("userId", res.data.userId);
   return res.data.token;
 };
 

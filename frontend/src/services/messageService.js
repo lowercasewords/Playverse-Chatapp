@@ -2,20 +2,13 @@ import axios from "axios";
 
 const API_URL = "/api/messages/";
 
-const getMessages = async () => {
+// Fetch all messages between current user and contactId
+const getMessagesBetweenUsers = async (contactId) => {
   const token = localStorage.getItem("token");
-  const res = await axios.get(API_URL, {
-    headers: { Authorization: `Bearer ${token}` }
+  const res = await axios.get(API_URL + contactId, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-  return res.data;
+  return res.data; // { messages: [...] }
 };
 
-const sendMessage = async (messageData) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.post(API_URL, messageData, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data;
-};
-
-export default { getMessages, sendMessage };
+export default { getMessagesBetweenUsers };
