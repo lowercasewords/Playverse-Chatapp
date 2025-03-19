@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import contactService from "../services/contactService";
 import messageService from "../services/messageService";
 
+// Connect to the backend socket server on port 5173
 const socket = io("http://localhost:5173");
 
 function Chat() {
@@ -15,7 +16,7 @@ function Chat() {
   // Retrieve current user ID from localStorage (set during login)
   const currentUserId = localStorage.getItem("userId");
 
-  // [15] Emit userConnected event on component mount
+  // NEW: When the component mounts, emit "userConnected" to register the user as online.
   useEffect(() => {
     if (!currentUserId) {
       console.error("No userId found in localStorage.");
@@ -25,12 +26,13 @@ function Chat() {
     console.log(`Emitted userConnected for user: ${currentUserId}`);
   }, [currentUserId]);
 
-  // [23] Fetch contacts from the backend
+  // Fetch contacts from the backend.
   useEffect(() => {
     async function fetchContacts() {
       try {
         const data = await contactService.getContacts();
         console.log("Fetched contacts:", data);
+        // data.contacts should be an array; if undefined, fallback to data itself.
         setContacts(data.contacts || data);
       } catch (err) {
         console.error("Error fetching contacts:", err);
@@ -39,15 +41,16 @@ function Chat() {
     fetchContacts();
   }, []);
 
-  // [33] Listen for incoming real-time messages
+  // Listen for incoming real-time messages.
   useEffect(() => {
     socket.on("receiveMessage", (messageData) => {
       console.log("Received message:", messageData);
       setMessages((prevMessages) => {
+        // Prevent duplicates by checking if the message ID already exists.
         if (prevMessages.find((m) => m.id === messageData.id)) {
           return prevMessages;
         }
-        // Only add the message if it is related to the currently selected contact
+        // Only add messages that involve the currently selected contact.
         if (
           messageData.sender.id === selectedContact?._id ||
           messageData.receiver.id === selectedContact?._id
@@ -62,12 +65,12 @@ function Chat() {
     };
   }, [selectedContact]);
 
-  // [47] When a user selects a contact, fetch past messages
+  // When a contact is selected, fetch past messages for the conversation.
   const handleSelectContact = async (contact) => {
     setSelectedContact(contact);
     try {
       const { messages: oldMessages } = await messageService.getMessagesBetweenUsers(contact._id);
-      // Transform messages into the expected structure
+      // Transform messages to match the shape used in the real-time events.
       const transformed = oldMessages.map((msg) => ({
         id: msg._id,
         sender: { id: msg.sender },
@@ -83,7 +86,20 @@ function Chat() {
     }
   };
 
-  // [63] Handle sending a new message
+  // NEW: Function to clear chat history for the selected contact.
+  const handleClearChat = async () => {
+    if (!selectedContact) return;
+    try {
+      // Call clearChat from messageService (make sure you have implemented it in your service)
+      await messageService.clearChat(selectedContact._id);
+      setMessages([]); // Clear local state
+      console.log("Chat cleared successfully");
+    } catch (err) {
+      console.error("Error clearing chat:", err);
+    }
+  };
+
+  // Handle sending a new message.
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedContact) return;
@@ -113,7 +129,9 @@ function Chat() {
             }}
             onClick={() => handleSelectContact(contact)}
           >
-            {contact.email}
+            {contact.email}{" "}
+            {/* NEW: Show a green dot if the contact is online */}
+            {contact.isOnline && <span style={{ color: "green", fontWeight: "bold" }}>●</span>}
           </div>
         ))}
       </div>
@@ -131,8 +149,8 @@ function Chat() {
               }}
             >
               {messages.map((msg, index) => {
-                // [80] Determine sender's display name: "Me" if the current user sent it; otherwise use the sender's email from contacts.
-                let senderName = "Me";
+                // If the sender is the current user, display "Me"; otherwise, display the sender's email.
+                let senderName = "";
                 if (msg.sender.id === currentUserId) {
                   senderName = "Me";
                 } else {
@@ -156,6 +174,10 @@ function Chat() {
               />
               <button type="submit" style={{ marginLeft: "5px" }}>
                 Send
+              </button>
+              {/* NEW: Clear Chat button */}
+              <button type="button" onClick={handleClearChat} style={{ marginLeft: "5px" }}>
+                Clear Chat
               </button>
             </form>
           </>

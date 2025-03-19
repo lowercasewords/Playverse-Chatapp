@@ -1,4 +1,3 @@
-// src/components/Contacts.js
 import React, { useState, useEffect } from "react";
 import contactService from "../services/contactService";
 
@@ -14,7 +13,8 @@ function Contacts() {
   async function fetchContacts() {
     try {
       const data = await contactService.getContacts();
-      // Adjust according to your backend response structure
+      console.log("Fetched contacts:", data);
+     
       setContacts(data.contacts || data);
     } catch (err) {
       console.error("Error fetching contacts:", err);
@@ -55,7 +55,11 @@ function Contacts() {
       ) : (
         <ul>
           {contacts.map((contact) => (
-            <li key={contact._id || contact.id}>{contact.email}</li>
+            <li key={contact._id || contact.id}>
+              {contact.email}{" "}
+              {/* NEW: Display a green dot if the contact is online */}
+              {contact.isOnline && <span style={{ color: "green", fontWeight: "bold" }}>●</span>}
+            </li>
           ))}
         </ul>
       )}

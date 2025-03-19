@@ -11,4 +11,13 @@ const getMessagesBetweenUsers = async (contactId) => {
   return res.data; // { messages: [...] }
 };
 
-export default { getMessagesBetweenUsers };
+const clearChat = async (contactId) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.delete(`${API_URL}clear/${contactId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data; // e.g. { message: "Chat cleared successfully" }
+};
+
+
+export default { getMessagesBetweenUsers, clearChat};
