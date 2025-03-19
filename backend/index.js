@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
   socket.on("sendMessage", async ({ sender, receiver, content, }) => {
       try {
           //save the name
-          const senderUser = await User.findById(sender).select("email firstName lastName");
+          const senderUser = await User.findOne({ email: sender }).select("email firstName lastName");
           const senderName = senderUser ? `${senderUser.firstName} ${senderUser.lastName}` : sender;
 
           // Save message to database

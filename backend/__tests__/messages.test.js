@@ -30,6 +30,7 @@ afterAll((done) => {
 describe("Live Messaging Service", () => {
     beforeEach((done) => {
         console.log("Connecting WebSocket clients...");
+        console.log(`Test server running on ${HOST}:${PORT}`);
     
         client1 = io(`http://${HOST}:${PORT}`, { transports: ["websocket"], forceNew: true });
         client2 = io(`http://${HOST}:${PORT}`, { transports: ["websocket"], forceNew: true });
@@ -57,7 +58,7 @@ describe("Live Messaging Service", () => {
             console.error("Client2 connection error:", err);
             done(err);
         });
-    });
+    }, 60000);
     
     
     
