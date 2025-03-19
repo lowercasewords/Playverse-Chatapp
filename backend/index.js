@@ -39,6 +39,10 @@ const io = new Server(server, {
       methods: ["GET", "POST"],
   },
 });
+//for online feature below
+const onlineUsers = new Map();
+app.locals.onlineUsers = onlineUsers;
+
 
 // Store active users and their socket IDs
 const users = new Map();
@@ -49,6 +53,7 @@ io.on("connection", (socket) => {
   // When a user joins, store their userId and socketId
   socket.on("userConnected", (userId) => {
       users.set(userId, socket.id);
+      onlineUsers.set(userId, socket.id)
       console.log(`User ${userId} connected with socket ${socket.id}`);
   });
 
@@ -91,6 +96,7 @@ io.on("connection", (socket) => {
       for (const [userId, socketId] of users.entries()) {
           if (socketId === socket.id) {
               users.delete(userId);
+              onlineUsers.delete(userId);
               break;
           }
       }
