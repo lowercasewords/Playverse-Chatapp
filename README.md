@@ -1,4 +1,4 @@
-This readme file will give you steps in order to replicate the installation process. Before doing anything of course, download the repository 
+IThis readme file will give you steps in order to replicate the installation process. Before doing anything of course, download the repository 
 
 # Backend Set-up
 
@@ -104,3 +104,8 @@ Regardless of the method you chose to set up your database, make sure that:
 1. Getting the hang of the initial structure of our project took me quite a while to get used t. Making sure that the microservices, test, dependancies, and other code parts located in their correct spots, as well as setting up the communication was a bit challenging on the first try.
 2. Setting up the test cases was an interesting task that I haven't been doing much on my own before. Writing test cases for each of the microservices and making sure that I test each significant portion took quite some time.
 3. The node_modules/ folder gave me a headache in terms of git to github storage. Since node_modules contains over a thousand files, We had to cache remove all of them and put them into .gitignore after pushing to main on backend. We had an even worse situation with frontend after merging two branches, one of which had node_modules/. So we had to perform some git commit manipulation to make sure no project data was lost, as well as .gitignore'ing all of the node_mdules.
+
+
+## Extra Credit features
+
+For the extra credit, You as a user, are able to know which users in your contact list are online. The online users will have the green dot to the right of their email in your contact list. 
